@@ -1,0 +1,10 @@
+# Example electron-updater / VS Code update manifest (PE.5–PE.6)
+# Publish under s3://…/desktop/stable/latest.yml (and latest-mac.yml / linux variants).
+version: 0.1.0-walkcroach.0
+files:
+  - url: WalkCroachSetup-0.1.0.exe
+    sha512: REPLACE_WITH_REAL_SHA512
+    size: 0
+path: WalkCroachSetup-0.1.0.exe
+sha512: REPLACE_WITH_REAL_SHA512
+releaseDate: '2026-07-19T00:00:00.000Z'

@@ -1,0 +1,11 @@
+{
+  "name": "@walkcroach/desktop-crash-lambda",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Opt-in crash ingest for WalkCroach Desktop (metadata only)",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test test.mjs",
+    "package": "node ../../scripts/package-crash-lambda.mjs"
+  }
+}

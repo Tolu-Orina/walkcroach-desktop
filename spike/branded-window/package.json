@@ -1,0 +1,15 @@
+{
+  "name": "@walkcroach/desktop-branded-spike",
+  "version": "0.0.0-phase0",
+  "private": true,
+  "description": "Phase 0.3 — empty branded Electron window (WalkCroach product.json). Not the full vscode fork.",
+  "main": "main.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "electron .",
+    "start:headless-smoke": "electron . --smoke-exit-ms=2500"
+  },
+  "devDependencies": {
+    "electron": "42.6.0"
+  }
+}

@@ -1,0 +1,18 @@
+# WalkCroach fork-only paths (NFR-F13)
+# Files outside this allowlist that differ from upstream HEAD fail the surface-area budget,
+# except for the documented minimal hooks listed below.
+
+## Allowlist (product code)
+src/vs/workbench/contrib/walkcroach/**
+
+## Minimal hooks (must stay tiny — review in sync PRs)
+src/vs/workbench/workbench.common.main.ts
+product.json
+product.json.oss.bak
+.gitignore
+
+## Explicitly forbidden to diverge without decision-log entry
+src/vs/code/**
+src/vs/platform/**
+src/vs/base/**
+src/vs/editor/**

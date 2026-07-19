@@ -1,0 +1,82 @@
+[
+  {
+    "id": "ms-vsliveshare.vsliveshare",
+    "name": "Live Share",
+    "reason": "Microsoft proprietary — Marketplace ToS restricts use to Microsoft products; unavailable / non-functional on forks.",
+    "alternative": {
+      "id": null,
+      "label": "Open Collaboration Tools / Theia collaboration (ecosystem) — no 1:1 Open VSX drop-in guaranteed",
+      "notes": "Prefer pair via git + review; do not proxy Marketplace."
+    }
+  },
+  {
+    "id": "ms-vscode-remote.remote-ssh",
+    "name": "Remote - SSH",
+    "reason": "Microsoft proprietary remote stack — blocked on non-Microsoft editors after Marketplace enforcement.",
+    "alternative": {
+      "id": "jeanp413.open-remote-ssh",
+      "label": "Open Remote - SSH",
+      "notes": "Verified on Open VSX; also in curated recommendations."
+    }
+  },
+  {
+    "id": "ms-vscode-remote.remote-containers",
+    "name": "Dev Containers",
+    "reason": "Microsoft proprietary — not licensed for forks.",
+    "alternative": {
+      "id": null,
+      "label": "Dev Container CLI + attach via open-remote-ssh / docker exec",
+      "notes": "No single official Open VSX replacement; document workflow rather than silent failure."
+    }
+  },
+  {
+    "id": "ms-vscode-remote.remote-wsl",
+    "name": "Remote - WSL",
+    "reason": "Microsoft proprietary remote stack.",
+    "alternative": {
+      "id": null,
+      "label": "Open a folder under \\\\wsl$\\… or use open-remote-ssh to localhost",
+      "notes": "WSL filesystem path often sufficient without the proprietary extension."
+    }
+  },
+  {
+    "id": "ms-vscode.cpptools",
+    "name": "C/C++ (ms-vscode.cpptools)",
+    "reason": "Microsoft proprietary C++ tools — historically broken on forks after April 2025 enforcement.",
+    "alternative": {
+      "id": "llvm-vs-code-extensions.vscode-clangd",
+      "label": "clangd",
+      "notes": "Verified on Open VSX; curated recommendation."
+    }
+  },
+  {
+    "id": "ms-python.vscode-pylance",
+    "name": "Pylance",
+    "reason": "Microsoft proprietary language server — Marketplace / license restricted.",
+    "alternative": {
+      "id": "ms-python.python",
+      "label": "Python (Open VSX build) + basedpyright where available",
+      "notes": "ms-python.python exists on Open VSX (verified); Pylance itself must not be recommended."
+    }
+  },
+  {
+    "id": "ms-dotnettools.csdevkit",
+    "name": "C# Dev Kit",
+    "reason": "Microsoft proprietary — not available for forks.",
+    "alternative": {
+      "id": "muhammad-sammy.csharp",
+      "label": "C# (free / community builds on Open VSX when present)",
+      "notes": "Audit at import time; never fall back to Marketplace proxy."
+    }
+  },
+  {
+    "id": "ms-toolsai.jupyter",
+    "name": "Jupyter (Microsoft)",
+    "reason": "Often paired with proprietary Microsoft bits; treat as incompatible unless Open VSX publish is verified at import.",
+    "alternative": {
+      "id": null,
+      "label": "Only install if Open VSX listing exists and audit passes",
+      "notes": "Import flow flags missing IDs — do not invent Marketplace URLs."
+    }
+  }
+]

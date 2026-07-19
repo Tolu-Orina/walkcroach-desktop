@@ -1,0 +1,13 @@
+{
+  "name": "@walkcroach/desktop-engine-import-spike",
+  "version": "0.0.0-phase0",
+  "private": true,
+  "type": "module",
+  "description": "Phase 0.5 — prove Desktop can import @walkcroach/agent-engine without vscode",
+  "scripts": {
+    "test": "node --test test/import.test.mjs"
+  },
+  "dependencies": {
+    "@walkcroach/agent-engine": "file:../../../walkcroach/packages/agent-engine"
+  }
+}

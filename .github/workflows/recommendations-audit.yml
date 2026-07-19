@@ -1,0 +1,44 @@
+name: Phase A audits
+on:
+  push:
+    branches: [main, 'walkcroach/**', 'sync/**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Product.json audit
+        run: node scripts/audit-product-json.mjs
+
+      - name: Apply product overlay (idempotent check)
+        run: |
+          if [ -f vscode/product.json ]; then
+            node scripts/apply-product.mjs
+            node scripts/audit-product-json.mjs
+          else
+            echo "vscode/ not in this checkout — skip apply"
+          fi
+
+      - name: Recommendations audit (NFR-F09)
+        run: node scripts/audit-recommendations.mjs
+
+      - name: Proprietary incompatibles audit (FR-F14)
+        run: node scripts/audit-incompatibles.mjs
+
+      - name: Surface-area budget (NFR-F13)
+        run: |
+          if [ -d vscode/.git ]; then
+            node scripts/audit-surface-area.mjs
+          else
+            echo "vscode/ missing — skip surface-area"
+          fi

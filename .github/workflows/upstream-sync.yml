@@ -1,0 +1,52 @@
+name: Upstream sync
+on:
+  schedule:
+    # Biweekly Monday 09:00 UTC
+    - cron: '0 9 */14 * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry-run only (no merge)'
+        type: boolean
+        default: true
+      target:
+        description: 'Optional upstream tag or ref'
+        required: false
+        type: string
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vscode
+    steps:
+      - name: Checkout walkcroach-desktop
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 0
+
+      - name: Ensure vscode checkout present
+        working-directory: .
+        run: |
+          if [ ! -d vscode/.git ]; then
+            echo "vscode/ missing — clone pin in CI bootstrap"
+            git clone --branch 1.129.0 --depth 1 https://github.com/microsoft/vscode.git vscode
+            cd vscode
+            git config core.longpaths true
+            git remote add upstream https://github.com/microsoft/vscode.git || true
+          fi
+
+      - name: Sync upstream
+        working-directory: .
+        run: |
+          chmod +x scripts/sync-upstream.sh
+          ARGS=()
+          if [ "${{ inputs.dry_run || true }}" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+          if [ -n "${{ inputs.target }}" ]; then
+            ARGS+=(--target "${{ inputs.target }}")
+          fi
+          ./scripts/sync-upstream.sh "${ARGS[@]}"

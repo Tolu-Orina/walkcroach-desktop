@@ -1,0 +1,20 @@
+node_modules/
+**/node_modules/
+dist/
+out/
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+spike/branded-window/node_modules/
+spike/engine-import/node_modules/
+# Nested microsoft/vscode checkout (own .git) — do not nest-track in parent
+/vscode/
+!/vscode/.gitkeep
+*.p8
+*.p12
+*.pfx
+secrets/
+vscode/product.json.oss.bak
+infra/desktop-crash/.build/

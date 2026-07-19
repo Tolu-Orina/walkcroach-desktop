@@ -1,0 +1,50 @@
+---
+name: Bug report
+description: Report a WalkCroach Desktop issue (triage upstream vs fork)
+title: ''
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing. Please answer the upstream triage question — it routes work correctly (FR-F21).
+  - type: checkboxes
+    id: upstream
+    attributes:
+      label: Does this reproduce in stock VS Code / VSCodium?
+      description: If yes, we label `upstream-candidate` and prefer filing upstream.
+      options:
+        - label: Yes — reproduces in stock VS Code
+        - label: Yes — reproduces in VSCodium
+        - label: No — WalkCroach-specific only
+        - label: Not tried yet
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: WalkCroach Desktop version
+  - type: input
+    id: os
+    attributes:
+      label: OS
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Do not paste secrets, tokens, or full prompt bodies

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "dbaeumer.vscode-eslint",
+    "publisher": "dbaeumer",
+    "reason": "JS/TS linting — verified on Open VSX"
+  },
+  {
+    "id": "esbenp.prettier-vscode",
+    "publisher": "esbenp",
+    "reason": "Code formatting — verified on Open VSX"
+  },
+  {
+    "id": "redhat.vscode-yaml",
+    "publisher": "redhat",
+    "reason": "YAML (Terraform/K8s adjacent) — verified on Open VSX"
+  },
+  {
+    "id": "streetsidesoftware.code-spell-checker",
+    "publisher": "streetsidesoftware",
+    "reason": "Spell check — verified on Open VSX"
+  },
+  {
+    "id": "llvm-vs-code-extensions.vscode-clangd",
+    "publisher": "llvm-vs-code-extensions",
+    "reason": "C/C++ language server — open alternative to ms-vscode.cpptools"
+  },
+  {
+    "id": "jeanp413.open-remote-ssh",
+    "publisher": "jeanp413",
+    "reason": "Remote SSH — open alternative to ms-vscode-remote.remote-ssh"
+  }
+]

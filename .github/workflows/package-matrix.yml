@@ -1,0 +1,65 @@
+name: Package matrix (PE.1)
+# Structural packaging CI. Full gulp package needs disk on runner.
+# Signed release jobs are gated on secrets (never claim signed without certs).
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Update channel'
+        required: true
+        default: 'insiders'
+        type: choice
+        options: [insiders, stable]
+  push:
+    tags: ['desktop-v*']
+
+concurrency:
+  group: package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  structural:
+    name: Structural package gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Phase E verify
+        run: npm run phaseE:verify
+      - name: Release notes template present
+        run: test -f packaging/RELEASE_NOTES.TEMPLATE.md
+      - name: macOS entitlements present
+        run: test -f packaging/entitlements.mac.plist
+
+  # Placeholder matrix — enable full compile when org runners have ≥15GB free.
+  package-smoke:
+    name: Package smoke (${{ matrix.os }})
+    needs: structural
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Record packaging intent
+        shell: bash
+        run: |
+          echo "channel=${{ github.event.inputs.channel || 'insiders' }}"
+          echo "os=${{ matrix.os }}"
+          echo "Full vscode npm ci + gulp vscode-win32-x64 / darwin / linux deferred until disk allows."
+          echo "See docs/phase-E/PACKAGING.md"
+
+  signed-release:
+    name: Signed release (secrets required)
+    needs: structural
+    if: ${{ false }} # flip to secrets check when enrollment complete
+    # if: ${{ secrets.APPLE_API_KEY != '' || secrets.AZURE_CLIENT_ID != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Enable when SIGNING_PROCUREMENT checkboxes are done — see docs/phase-E/SIGNING.md"

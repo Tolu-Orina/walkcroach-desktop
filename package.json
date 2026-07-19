@@ -1,0 +1,35 @@
+{
+  "name": "walkcroach-desktop",
+  "version": "0.1.0-phase-f",
+  "private": true,
+  "description": "WalkCroach Desktop — sustainability cadence + interim Windows portable ship (Phase F)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "apply:product": "node scripts/apply-product.mjs",
+    "audit:product": "node scripts/audit-product-json.mjs",
+    "audit:recommendations": "node scripts/audit-recommendations.mjs",
+    "audit:incompatibles": "node scripts/audit-incompatibles.mjs",
+    "audit:release-notes": "node scripts/audit-release-notes.mjs",
+    "audit:surface-area": "node scripts/audit-surface-area.mjs",
+    "cadence:kpi": "node scripts/cadence-kpi.mjs",
+    "sync:upstream": "bash scripts/sync-upstream.sh",
+    "sync:upstream:dry": "bash scripts/sync-upstream.sh --dry-run",
+    "phase0:verify": "node scripts/phase0-verify.mjs",
+    "phaseA:verify": "node scripts/phaseA-verify.mjs",
+    "phaseB:verify": "node scripts/phaseB-verify.mjs",
+    "phaseC:verify": "node scripts/phaseC-verify.mjs",
+    "phaseD:verify": "node scripts/phaseD-verify.mjs",
+    "phaseE:verify": "node scripts/phaseE-verify.mjs",
+    "phaseF:verify": "node scripts/phaseF-verify.mjs",
+    "package:crash-lambda": "node scripts/package-crash-lambda.mjs",
+    "test:desktop-agent": "npm test --prefix packages/desktop-agent",
+    "test:crash-lambda": "node --test infra/desktop-crash/codes/test.mjs",
+    "compile": "npm run compile --prefix vscode",
+    "launch": "npm run watch --prefix vscode",
+    "spike:branded": "npm run start --prefix spike/branded-window",
+    "spike:engine": "npm test --prefix spike/engine-import"
+  }
+}

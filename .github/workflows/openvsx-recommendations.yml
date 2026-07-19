@@ -1,0 +1,36 @@
+name: Phase D — Open VSX audits (fail closed)
+on:
+  push:
+    branches: [main, 'walkcroach/**', 'sync/**', 'release/**']
+  pull_request:
+  schedule:
+    - cron: '0 12 * * 1'
+  workflow_dispatch:
+
+jobs:
+  openvsx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Product.json Open VSX only (NFR-F07)
+        run: node scripts/audit-product-json.mjs
+
+      - name: Curated recommendations vs live Open VSX (NFR-F09)
+        run: node scripts/audit-recommendations.mjs
+
+      - name: Proprietary incompatibles catalog
+        run: node scripts/audit-incompatibles.mjs
+
+      - name: Apply overlay when vscode/ present
+        run: |
+          if [ -f vscode/product.json ]; then
+            node scripts/apply-product.mjs
+            node scripts/audit-product-json.mjs
+          else
+            echo "vscode/ not in checkout — skip apply"
+          fi
