@@ -1,0 +1,81 @@
+name: Release Windows portable (D6.0 preview)
+
+# Unsigned Windows portable preview.
+# Full gulp packaging requires nested vscode/ (not in parent git) — that step is
+# local/release-machine. This workflow always builds + smoke-tests engine-bundle.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag reminder (desktop-v…)'
+        required: false
+        type: string
+        default: 'desktop-v0.1.0-preview.1'
+  push:
+    tags: ['desktop-v*']
+
+concurrency:
+  group: release-win-portable-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  engine-bundle:
+    name: Build engine-bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout walkcroach-desktop
+        uses: actions/checkout@v4
+        with:
+          path: walkcroach-desktop
+
+      - name: Checkout walkcroach (agent-engine)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/walkcroach
+          path: walkcroach
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build agent-engine + engine-bundle
+        working-directory: walkcroach-desktop
+        run: npm run package:engine-bundle
+
+      - name: Upload engine-bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-bundle
+          path: |
+            walkcroach-desktop/packages/desktop-agent/dist-bundle/engine-bundle.cjs
+            walkcroach-desktop/packages/desktop-agent/dist-bundle/engine-bundle.meta.json
+
+      - name: Verify Desktop product
+        working-directory: walkcroach-desktop
+        run: npm run verify:fast
+
+  audits:
+    name: Product audits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm run audit:recommendations
+      - run: npm run audit:surface-area
+      - run: npm run audit:release-notes
+
+  note-operator:
+    name: Operator reminder
+    runs-on: ubuntu-latest
+    needs: [engine-bundle, audits]
+    steps:
+      - run: |
+          echo "D6.0: engine-bundle CI green."
+          echo "Full Windows portable zip is built on a machine with nested vscode/:"
+          echo "  npm run package:windows-portable"
+          echo "  npm run release:windows-portable -- --tag ${{ github.event.inputs.tag || github.ref_name }}"
+          echo "See docs/SHIPPING.md and docs/STATUS.md"

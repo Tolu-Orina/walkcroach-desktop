@@ -1,5 +1,5 @@
 export { DesktopHostAdapter, isPathInsideWorkspace } from './desktopHostAdapter.js';
-export type { DesktopHostDeps } from './desktopHostAdapter.js';
+export type { DesktopHostDeps, DesktopWorkbenchHooks } from './desktopHostAdapter.js';
 export {
   createDesktopHost,
   createSessionHost,
@@ -23,6 +23,17 @@ export type {
   IdeProject,
 } from './ideClient.js';
 export { MemorySecrets } from './memorySecrets.js';
+export { FileSecrets } from './fileSecrets.js';
+export type { FileSecretsOpts } from './fileSecrets.js';
+export {
+  DurableMemoryStore,
+  DURABLE_DIR_REL,
+} from './durable/durableMemoryStore.js';
+export type {
+  DurableEntry,
+  DurableCacheEntry,
+  DurableMemoryStoreDeps,
+} from './durable/durableMemoryStore.js';
 export {
   CrdbPanelSession,
   DEMO_SCHEMA,

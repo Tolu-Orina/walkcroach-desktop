@@ -1,5 +1,6 @@
 name: Package matrix (PE.1)
-# Structural packaging CI. Full gulp package needs disk on runner.
+# Structural packaging CI. Full gulp package needs nested vscode/ + disk on runner.
+# Unsigned Windows portable: docs/SHIPPING.md + release-windows-portable.yml
 # Signed release jobs are gated on secrets (never claim signed without certs).
 on:
   workflow_dispatch:
@@ -26,14 +27,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Phase E verify
-        run: npm run phaseE:verify
-      - name: Release notes template present
-        run: test -f packaging/RELEASE_NOTES.TEMPLATE.md
+      - name: Verify Desktop product
+        run: npm run verify:fast
+      - name: Release notes templates present
+        run: |
+          test -f packaging/RELEASE_NOTES.TEMPLATE.md
+          test -f packaging/RELEASE_NOTES.preview.md
       - name: macOS entitlements present
         run: test -f packaging/entitlements.mac.plist
+      - name: Packaging scripts present
+        run: |
+          test -f scripts/package-windows-portable.mjs
+          test -f scripts/package-engine-bundle.mjs
+          test -f packages/desktop-agent/scripts/bundle-engine.mjs
 
-  # Placeholder matrix — enable full compile when org runners have ≥15GB free.
   package-smoke:
     name: Package smoke (${{ matrix.os }})
     needs: structural
@@ -52,14 +59,14 @@ jobs:
         run: |
           echo "channel=${{ github.event.inputs.channel || 'insiders' }}"
           echo "os=${{ matrix.os }}"
-          echo "Full vscode npm ci + gulp vscode-win32-x64 / darwin / linux deferred until disk allows."
-          echo "See docs/phase-E/PACKAGING.md"
+          echo "Full vscode npm ci + gulp vscode-win32-x64 deferred until nested vscode is CI-available."
+          echo "Local: npm run package:windows-portable"
+          echo "See docs/SHIPPING.md"
 
   signed-release:
     name: Signed release (secrets required)
     needs: structural
-    if: ${{ false }} # flip to secrets check when enrollment complete
-    # if: ${{ secrets.APPLE_API_KEY != '' || secrets.AZURE_CLIENT_ID != '' }}
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Enable when SIGNING_PROCUREMENT checkboxes are done — see docs/phase-E/SIGNING.md"
+      - run: echo "Enable when signing is funded — see docs/SHIPPING.md"

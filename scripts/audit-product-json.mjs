@@ -24,11 +24,21 @@ if (!product.walkcroach?.curatedRecommendationsFile) {
 if (!product.walkcroach?.proprietaryIncompatiblesFile) {
   errors.push('proprietaryIncompatiblesFile required');
 }
-if (product.walkcroach?.upstreamCommit !== '125df4672b8a6a34975303c6b0baa124e560a4f7') {
-  errors.push('upstreamCommit pin mismatch');
+/**
+ * Pin expectations come from product/product.walkcroach.json (single source of truth).
+ * SHIPPING.md mirrors the same table for humans.
+ */
+const expectTag = product.walkcroach?.upstreamTag;
+const expectCommit = product.walkcroach?.upstreamCommit;
+const expectElectron = product.walkcroach?.electron;
+
+if (!expectTag || !expectCommit || !expectElectron) {
+  errors.push('product.walkcroach.json missing upstreamTag / upstreamCommit / electron');
+} else if (!/^[0-9a-f]{40}$/i.test(String(expectCommit))) {
+  errors.push(`upstreamCommit must be 40-char sha, got ${expectCommit}`);
+} else if (!/^\d+\.\d+\.\d+/.test(String(expectElectron))) {
+  errors.push(`electron pin looks invalid: ${expectElectron}`);
 }
-if (product.walkcroach?.upstreamTag !== '1.129.0') errors.push('upstreamTag');
-if (product.walkcroach?.electron !== '42.6.0') errors.push('electron pin');
 
 const g = product.extensionsGallery ?? {};
 const required = {

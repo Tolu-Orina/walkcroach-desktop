@@ -1,0 +1,38 @@
+{
+  "name": "@walkcroach/agent-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "WalkCroach Desktop agent view — React/Tailwind/Motion UI, built to a single self-contained bundle the fork hosts in a webview.",
+  "scripts": {
+    "build": "vite build && vite build --config vite.settings.config.ts",
+    "build:agent": "vite build",
+    "build:settings": "vite build --config vite.settings.config.ts",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@walkcroach/agent-protocol": "file:../../../walkcroach/packages/agent-protocol",
+    "@radix-ui/react-scroll-area": "^1.2.9",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-tooltip": "^1.2.7",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.544.0",
+    "motion": "^12.23.12",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^5.0.2",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5"
+  }
+}

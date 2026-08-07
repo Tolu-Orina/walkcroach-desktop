@@ -1,57 +1,49 @@
 # WalkCroach Desktop
 
-VS Code / Code OSS **fork** delivery plane for WalkCroach. Shares the product monorepo’s `@walkcroach/agent-engine` and `/ide` control plane.
+VS Code / Code OSS **fork** delivery plane for WalkCroach. Shares `@walkcroach/agent-engine` and the `/ide` control plane with the sibling `walkcroach/` monorepo.
 
-**Companion docs:** `walkcroach/docs/walkcroach-desktop-ide-prd.md`, `walkcroach-desktop-ide-implementation-plan.md`
+**Docs (only three):**
 
-## Status
+| Doc | Contents |
+|-----|----------|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Layout, layering, UI map, data flows |
+| [`docs/STATUS.md`](docs/STATUS.md) | What works, stubs, bugs, deep-review backlog |
+| [`docs/SHIPPING.md`](docs/SHIPPING.md) | Pin, compile, unsigned preview package/release |
 
-| Phase | Status |
-|-------|--------|
-| Phase 0 — Research spike | ✅ |
-| Phase A — Fork bootstrap | ✅ Structural (`npm run phaseA:verify`) |
-| Phase B — Native agent | ✅ Structural (`npm run phaseB:verify`) |
-| Phase C — CockroachDB panels | ✅ Structural (`npm run phaseC:verify`) |
-| Phase D — Marketplace / migration | ✅ Structural (`npm run phaseD:verify`) |
-| Phase E — Distribution / signing | ✅ Structural (`npm run phaseE:verify`) |
-| **Phase F — Sustainability** | ✅ Structural (`npm run phaseF:verify`) — continuous cadence |
+Monorepo pointer: `walkcroach/docs/walkcroach-desktop.md`
 
-## Interim public distribution
+## Status (short)
 
-**Windows portable `.zip` / `.exe`** (unsigned preview) + checksums.  
-See [`docs/phase-E/INTERIM_DISTRIBUTION.md`](docs/phase-E/INTERIM_DISTRIBUTION.md).  
-Not claimed as code-signed. Apple/Azure signing when budget allows.
+Native agent path + Path B Agents Window + fleet soft-cap are implemented. CRDB panels are mostly demo. Public ship = **unsigned Windows portable** tooling (first Release is an operator step). Details: STATUS.md.
 
 ## Layout
 
 ```text
 walkcroach-desktop/
-├── packages/desktop-agent/          # Node HostAdapter + session (Phase B)
-├── product/                         # WalkCroach product overlay + curated recommendations
-├── scripts/                         # apply-product, audits, sync-upstream, phase*-verify
-├── cadence/                         # NFR-F12 owner + sync records
-├── docs/phase-0|…|phase-F/ + decisions/ upstream/ surface-area/
-├── infra/                           # Desktop-only update CDN + crash Lambda (TF)
-├── packaging/                       # entitlements, release notes, manifest examples
-├── spike/                           # Phase 0 Electron + engine-import spikes
-└── vscode/                          # Nested clone of microsoft/vscode @ pin (own .git)
-    └── src/vs/workbench/contrib/walkcroach/   # ALL fork product code
+├── packages/desktop-agent/          # HostAdapter + session (Node)
+├── packages/agent-ui/               # React → agent-ui.js / settings-ui.js
+├── product/                         # Overlay + allowlist + curated lists
+├── scripts/                         # apply-product, audits, packaging, verify
+├── packaging/                       # Release notes, entitlements, dist/
+├── infra/                           # Update S3 + crash Lambda
+├── cadence/                         # Upstream cadence + conflict logs
+├── docs/                            # ARCHITECTURE · STATUS · SHIPPING
+└── vscode/                          # Nested microsoft/vscode @ pin (own .git)
 ```
 
 ## Upstream pin
 
 | | |
 |--|--|
-| Tag | `1.129.0` |
-| Commit | `125df4672b8a6a34975303c6b0baa124e560a4f7` |
-| Electron | `42.6.0` |
+| Tag | `1.131.0` |
+| Commit | `3a03d6f72d628a7741c29f456b4ddbb5ae68502c` |
+| Electron | `42.7.0` |
 | Node (build) | `24.18.0` |
 
 ## Conventions
 
 - Commit prefixes: `feat(walkcroach):`, `fix(walkcroach):`, `build:`, `sync(upstream):`
-- Fork-only code **only** under `vscode/src/vs/workbench/contrib/walkcroach/`
-- Minimal hooks allowed: `product.json`, single import in `workbench.common.main.ts`
+- Fork-only code under allowlisted paths (`contrib/walkcroach/`, Agent Host `walkcroach/`, …)
 - Open VSX **only** — never Microsoft Marketplace proxy
 - Memory writes use `source_surface=desktop`
 - Upstream sync ≤ 14 days — `cadence/`, `npm run sync:upstream:dry`
@@ -59,36 +51,20 @@ walkcroach-desktop/
 ## Commands
 
 ```bash
-# Phase F verify (cadence KPI + sustainability; includes Phase E)
-npm run phaseF:verify
-npm run cadence:kpi
-
-# Desktop agent only
-npm run test:desktop-agent
-
-# Apply WalkCroach product.json onto vscode/
+npm run verify              # full product gate (audits + tests + cadence)
+npm run verify:fast         # wiring + audits only (CI-friendly)
 npm run apply:product
-
-# Audits
 npm run audit:recommendations
 npm run audit:surface-area
 
-# Upstream
+# Unsigned Windows portable (needs nested vscode/ + sibling walkcroach/)
+npm run package:engine-bundle
+npm run package:windows-portable
+npm run release:windows-portable -- --tag desktop-v0.1.0-preview.1
+
 npm run sync:upstream:dry
 ```
 
-### Full compile / launch (needs ≥15GB free + Node 24.18.0)
+### Full compile / launch
 
-See [`docs/phase-A/COMPILE.md`](docs/phase-A/COMPILE.md) and [`docs/phase-B/ENGINE_BRIDGE.md`](docs/phase-B/ENGINE_BRIDGE.md).
-
-```bash
-cd vscode
-npm ci
-npm run compile
-# Windows: scripts\code.bat
-# Sidebar → WalkCroach → Agent  |  F1 → WalkCroach: …
-```
-
-## License
-
-WalkCroach product code: MIT. Upstream `microsoft/vscode` remains MIT; retain notices.
+See [`docs/SHIPPING.md`](docs/SHIPPING.md).

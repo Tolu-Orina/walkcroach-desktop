@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <SpectreMitigation>false</SpectreMitigation>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC\14.29.30133\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+</Project>

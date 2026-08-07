@@ -1,0 +1,284 @@
+@import 'tailwindcss';
+
+/*
+ * WalkCroach Settings — Graphite Lumen product settings.
+ * One radius, one accent (signal), surfaces track vscode theme vars.
+ */
+@theme {
+	--color-canvas: var(--vscode-editor-background, #12141a);
+	--color-raised: var(--vscode-sideBar-background, #181b22);
+	--color-line: var(--vscode-panel-border, #2a303a);
+	--color-paper: var(--vscode-foreground, #f2f3f5);
+	--color-mist: var(--vscode-descriptionForeground, #9198a4);
+	--color-signal: #f0b429;
+	--color-teal: #6b9eff;
+	--color-ember: #f07167;
+	--font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+	--font-sans: var(--vscode-font-family, system-ui, sans-serif);
+	--radius: 8px;
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+	html, body, #root {
+		height: 100%;
+		margin: 0;
+	}
+	body {
+		font-family: var(--font-sans);
+		font-size: 13px;
+		color: var(--color-paper);
+		background:
+			radial-gradient(1200px 600px at 0% 0%, color-mix(in oklab, var(--color-signal) 8%, transparent), transparent 55%),
+			radial-gradient(900px 500px at 100% 100%, color-mix(in oklab, var(--color-teal) 7%, transparent), transparent 50%),
+			var(--color-canvas);
+		-webkit-font-smoothing: antialiased;
+	}
+	* { box-sizing: border-box; }
+	button, input, select { font: inherit; color: inherit; }
+}
+
+.wc-settings {
+	display: grid;
+	grid-template-columns: 240px 1fr;
+	height: 100%;
+	min-height: 0;
+}
+
+.wc-settings-nav {
+	border-right: 1px solid var(--color-line);
+	background: color-mix(in oklab, var(--color-raised) 88%, transparent);
+	backdrop-filter: blur(16px);
+	padding: 20px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.wc-settings-brand {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 4px 10px 12px;
+}
+
+.wc-settings-mark {
+	width: 28px;
+	height: 28px;
+	border-radius: 7px;
+	background:
+		conic-gradient(from 210deg, var(--color-signal), var(--color-teal), var(--color-ember), var(--color-signal));
+	box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-paper) 12%, transparent);
+}
+
+.wc-settings-title {
+	font-family: var(--font-display);
+	font-size: 17px;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 1.1;
+}
+
+.wc-settings-subtitle {
+	font-size: 11px;
+	color: var(--color-mist);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.wc-settings-nav-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.wc-settings-nav-item {
+	appearance: none;
+	border: 0;
+	background: transparent;
+	text-align: left;
+	padding: 9px 12px;
+	border-radius: var(--radius);
+	color: var(--color-mist);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	transition: background 160ms var(--ease-out-expo), color 160ms var(--ease-out-expo);
+}
+
+.wc-settings-nav-item:hover {
+	color: var(--color-paper);
+	background: color-mix(in oklab, var(--color-paper) 5%, transparent);
+}
+
+.wc-settings-nav-item[data-active='true'] {
+	color: var(--color-paper);
+	background: color-mix(in oklab, var(--color-signal) 14%, transparent);
+	box-shadow: inset 2px 0 0 var(--color-signal);
+}
+
+.wc-settings-ext {
+	opacity: 0.55;
+	font-size: 11px;
+}
+
+.wc-settings-main {
+	min-width: 0;
+	overflow: auto;
+	padding: 36px 40px 48px;
+}
+
+.wc-settings-panel {
+	max-width: 640px;
+}
+
+.wc-settings-header h1 {
+	margin: 0 0 8px;
+	font-family: var(--font-display);
+	font-size: 28px;
+	font-weight: 600;
+	letter-spacing: -0.03em;
+}
+
+.wc-settings-header p {
+	margin: 0 0 28px;
+	color: var(--color-mist);
+	line-height: 1.45;
+	max-width: 52ch;
+}
+
+.wc-settings-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+.wc-settings-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.wc-settings-label {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+.wc-settings-hint {
+	font-size: 12px;
+	color: var(--color-mist);
+	line-height: 1.4;
+}
+
+.wc-settings-input {
+	appearance: none;
+	border: 1px solid var(--color-line);
+	background: color-mix(in oklab, var(--color-raised) 80%, #000);
+	border-radius: var(--radius);
+	padding: 10px 12px;
+	outline: none;
+	transition: border-color 160ms var(--ease-out-expo), box-shadow 160ms var(--ease-out-expo);
+}
+
+.wc-settings-input:focus {
+	border-color: color-mix(in oklab, var(--color-signal) 70%, var(--color-line));
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-signal) 22%, transparent);
+}
+
+.wc-settings-input:disabled {
+	opacity: 0.45;
+}
+
+.wc-settings-card {
+	border: 1px solid var(--color-line);
+	border-radius: var(--radius);
+	padding: 16px;
+	background: color-mix(in oklab, var(--color-raised) 70%, transparent);
+}
+
+.wc-settings-card-title {
+	font-weight: 600;
+	margin-bottom: 6px;
+}
+
+.wc-settings-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.wc-settings-btn {
+	appearance: none;
+	border: 1px solid color-mix(in oklab, var(--color-signal) 45%, var(--color-line));
+	background: color-mix(in oklab, var(--color-signal) 16%, transparent);
+	color: var(--color-paper);
+	border-radius: var(--radius);
+	padding: 8px 12px;
+	cursor: pointer;
+	transition: transform 120ms var(--ease-out-expo), background 160ms var(--ease-out-expo);
+}
+
+.wc-settings-btn:hover {
+	background: color-mix(in oklab, var(--color-signal) 26%, transparent);
+}
+
+.wc-settings-btn:active {
+	transform: translateY(1px);
+}
+
+.wc-settings-btn.ghost {
+	border-color: var(--color-line);
+	background: transparent;
+}
+
+.wc-settings-toggle {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+}
+
+.wc-settings-toggle input {
+	accent-color: var(--color-signal);
+	width: 16px;
+	height: 16px;
+}
+
+.wc-settings-swatches {
+	max-width: 420px;
+}
+
+.wc-settings-color-row {
+	display: grid;
+	grid-template-columns: 44px 1fr;
+	gap: 10px;
+	align-items: center;
+}
+
+.wc-settings-color-row input[type='color'] {
+	width: 44px;
+	height: 40px;
+	padding: 0;
+	border: 1px solid var(--color-line);
+	border-radius: var(--radius);
+	background: transparent;
+	cursor: pointer;
+}
+
+@media (max-width: 760px) {
+	.wc-settings {
+		grid-template-columns: 1fr;
+	}
+	.wc-settings-nav {
+		border-right: 0;
+		border-bottom: 1px solid var(--color-line);
+		padding-bottom: 8px;
+	}
+	.wc-settings-nav-list {
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+}

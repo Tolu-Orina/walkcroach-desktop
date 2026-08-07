@@ -17,6 +17,7 @@ import {
   createDesktopMemoryBridge,
   type DesktopIdeClient,
 } from './ideClient.js';
+import type { BedrockMessage } from '@walkcroach/agent-engine';
 
 export const DESKTOP_SOURCE_SURFACE = 'desktop' as const;
 
@@ -74,6 +75,7 @@ export function createSessionHost(
     isTrustedWorkspace: base.isTrustedWorkspace,
     secrets: base.secrets,
     log: base.log,
+    workbench: base.workbench,
     emit: (ev) => {
       if (ev.type === 'token_delta') {
         coalescer.push(ev.text);
@@ -150,6 +152,21 @@ export function startDesktopSession(
       });
     }
 
+    // D5.1 — resume Bedrock transcript from `.walkcroach/sessions/` when present.
+    let priorMessages: BedrockMessage[] | undefined;
+    let followUp = false;
+    try {
+      const snap = await host.loadAgentSession?.();
+      if (snap?.messages.length) {
+        priorMessages = snap.messages;
+        followUp = true;
+      }
+    } catch {
+      /* cold start without disk session is fine */
+    }
+
+    const ids = host.ensureEngineSessionId();
+
     await runAgentLoop({
       host,
       prompt: opts.prompt,
@@ -159,6 +176,19 @@ export function startDesktopSession(
       ccloudApiKey: ccloudApiKey || undefined,
       projectMemory,
       includePhaseB: true,
+      priorMessages,
+      followUp,
+      onSessionMessages: (messages) => {
+        void host
+          .persistAgentSession?.({
+            sessionId: ids.sessionId,
+            messages,
+            createdAt: ids.createdAt,
+          })
+          .catch(() => {
+            /* best-effort disk persist */
+          });
+      },
     });
   })();
 

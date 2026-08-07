@@ -18,3 +18,6 @@ spike/engine-import/node_modules/
 secrets/
 vscode/product.json.oss.bak
 infra/desktop-crash/.build/
+packaging/dist/
+VSCode-win32-*/
+packages/desktop-agent/dist-bundle/

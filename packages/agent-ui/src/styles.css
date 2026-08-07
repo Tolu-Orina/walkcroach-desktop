@@ -1,0 +1,329 @@
+@import 'tailwindcss';
+
+/*
+ * Graphite Lumen, as Tailwind v4 theme tokens.
+ *
+ * ---------------------------------------------------------------------------
+ * SURFACES follow the theme. BRAND ACCENTS DO NOT. This split is deliberate.
+ * ---------------------------------------------------------------------------
+ * The first version bound every colour to a `--vscode-*` variable with our hex
+ * as the `var()` fallback. That was wrong, and measurably so: those variables
+ * always exist, so the fallback never fires. Under the shipped default theme
+ * (Dark Modern — the fork sets no `defaultColorTheme`, and no Graphite Lumen
+ * theme file exists yet) it resolved to:
+ *
+ *     focusBorder          #0078D4   -> `signal` rendered BLUE, not amber
+ *     textLink.foreground  #4daafc   -> `teal`   rendered light blue
+ *
+ * i.e. the two accents collapsed into near-identical blues, destroying the
+ * "teal means memory and nothing else" rule the provenance chip depends on —
+ * and making the whole view look like stock VS Code.
+ *
+ * So: canvas/raised/line/paper/mist track the user's theme, because the view
+ * must sit correctly inside whatever chrome surrounds it. signal/teal/ember are
+ * brand identity and are literal.
+ *
+ * `signal` (amber) is CTA/focus only and never a large fill.
+ * `teal` is the MEMORY colour and is used for nothing else — that exclusivity is
+ * what makes a provenance chip readable without a legend.
+ */
+@theme {
+	--color-canvas: var(--vscode-sideBar-background, #14161b);
+	--color-raised: var(--vscode-input-background, #1c1f26);
+	--color-line: var(--vscode-panel-border, #2e333c);
+	--color-ink: #0b0c0f;
+
+	--color-paper: var(--vscode-foreground, #f2f3f5);
+	--color-mist: var(--vscode-descriptionForeground, #9198a4);
+
+	--color-signal: #f0b429;
+	--color-teal: #6b9eff;
+	--color-ember: #f07167;
+
+	--font-sans: var(--vscode-font-family, system-ui, sans-serif);
+	--font-mono: var(--vscode-editor-font-family, ui-monospace, monospace);
+
+	--radius-sm: 4px;
+	--radius-md: 8px;
+	--radius-lg: 12px;
+
+	--text-meta: 11px;
+	--text-body: 13px;
+
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+	html,
+	body,
+	#root {
+		height: 100%;
+		margin: 0;
+	}
+
+	body {
+		background: transparent;
+		color: var(--color-paper);
+		font-family: var(--font-sans);
+		font-size: var(--text-body);
+		/* The webview is an iframe; its own scrollbar would double up with ours. */
+		overflow: hidden;
+	}
+
+	/* Slim scrollbars that read as part of the editor, not the OS. */
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: color-mix(in srgb, var(--color-mist) 35%, transparent) transparent;
+	}
+
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background: color-mix(in srgb, var(--color-mist) 28%, transparent);
+		border: 3px solid transparent;
+		background-clip: content-box;
+		border-radius: 999px;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: color-mix(in srgb, var(--color-mist) 55%, transparent);
+		background-clip: content-box;
+	}
+
+	:focus-visible {
+		outline: 1px solid var(--color-signal);
+		outline-offset: -1px;
+	}
+}
+
+@layer components {
+	/*
+	 * The "flashy" layer. Every effect here is subtle enough to survive an
+	 * 8-hour working day — this is an IDE, not a landing page. The rule applied
+	 * throughout: motion and glow mark STATE CHANGES (streaming, awaiting
+	 * approval, focus), never idle decoration.
+	 */
+
+	/*
+	 * Ambient orbs (spec §10.4).
+	 *
+	 * Rendered as real elements, not a ::before gradient, so each can drift
+	 * independently. Every orb carries `aria-hidden` in the markup — decorative
+	 * elements must never reach the accessibility tree.
+	 *
+	 * The container MUST clip: an orb near a panel edge otherwise bleeds into
+	 * the neighbouring panel.
+	 */
+	.wc-orbs {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+		pointer-events: none;
+		z-index: 0;
+	}
+
+	.wc-orb {
+		position: absolute;
+		width: 60%;
+		aspect-ratio: 1;
+		filter: blur(34px);
+		opacity: 0.5;
+		/* A slow radius morph is what reads as "bubble" rather than
+		   "static gradient circle". */
+		border-radius: 42% 58% 63% 37% / 45% 40% 60% 55%;
+		will-change: transform, border-radius;
+	}
+
+	.wc-orb--signal {
+		top: -14%;
+		right: -18%;
+		background: radial-gradient(circle at 40% 40%, var(--color-signal), transparent 68%);
+		animation: wc-drift-a 13s ease-in-out infinite alternate;
+	}
+
+	.wc-orb--teal {
+		top: 28%;
+		left: -22%;
+		background: radial-gradient(circle at 55% 45%, var(--color-teal), transparent 68%);
+		/* Negative delay desyncs the pair so they never move in visible unison. */
+		animation: wc-drift-b 17s ease-in-out -6s infinite alternate;
+	}
+
+	/*
+	 * Composer shell — spinning flash + top-edge glow when active.
+	 *
+	 * The spark is a REAL element (not ::after). Pseudo + mask approaches were
+	 * invisible in the Electron webview; a DOM node with transform rotate is
+	 * the reliable path. Overflow clips the oversized disc to a 2px frame.
+	 */
+	.wc-composer-shell {
+		position: relative;
+		border-radius: var(--radius-md);
+		padding: 2px;
+		background: #0000;
+		overflow: hidden;
+		box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-line) 90%, transparent);
+		transition: box-shadow 180ms var(--ease-out-expo);
+	}
+
+	.wc-composer-shell[data-active='true'] {
+		box-shadow:
+			0 0 0 1px color-mix(in srgb, var(--color-signal) 28%, transparent),
+			0 -10px 28px -10px color-mix(in srgb, var(--color-signal) 45%, transparent);
+	}
+
+	.wc-composer-glow {
+		position: absolute;
+		top: 0;
+		left: 16%;
+		right: 16%;
+		height: 2px;
+		border-radius: 999px;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			var(--color-signal) 50%,
+			transparent 100%
+		);
+		/* Always present at rest; brightens on focus/run. */
+		opacity: 0.45;
+		transition: opacity 180ms var(--ease-out-expo);
+		pointer-events: none;
+		z-index: 3;
+	}
+
+	.wc-composer-shell[data-active='true'] .wc-composer-glow {
+		opacity: 0.95;
+	}
+
+	.wc-composer-spark {
+		position: absolute;
+		/* Large enough that a rotation always fills every edge of the 2px frame. */
+		inset: -60%;
+		border-radius: 50%;
+		background: conic-gradient(
+			from 0deg,
+			transparent 0deg,
+			transparent 300deg,
+			var(--color-signal) 320deg,
+			#fff 330deg,
+			var(--color-teal) 340deg,
+			transparent 355deg,
+			transparent 360deg
+		);
+		/* Always spinning — focus only intensifies, it does not gate visibility. */
+		opacity: 0.7;
+		pointer-events: none;
+		z-index: 0;
+		will-change: transform;
+		animation: wc-rotate 2.4s linear infinite;
+	}
+
+	.wc-composer-shell[data-active='true'] .wc-composer-spark {
+		opacity: 1;
+	}
+
+	.wc-composer {
+		position: relative;
+		z-index: 1;
+		border-radius: calc(var(--radius-md) - 1.5px);
+		background: var(--color-raised);
+	}
+
+	/* Shimmer sweep for streaming text and skeletons. */
+	.wc-shimmer {
+		background: linear-gradient(
+			100deg,
+			transparent 30%,
+			color-mix(in srgb, var(--color-paper) 22%, transparent) 50%,
+			transparent 70%
+		);
+		background-size: 200% 100%;
+		animation: wc-shimmer 1.6s linear infinite;
+	}
+
+	/* Gradient wordmark, used once, in the header. */
+	.wc-wordmark {
+		background: linear-gradient(92deg, var(--color-paper), var(--color-signal) 60%, var(--color-teal));
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+}
+
+@keyframes wc-shimmer {
+	to {
+		background-position: -200% 0;
+	}
+}
+
+@keyframes wc-rotate {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes wc-drift-a {
+	from {
+		transform: translate3d(0, 0, 0) scale(1);
+		border-radius: 42% 58% 63% 37% / 45% 40% 60% 55%;
+	}
+	to {
+		transform: translate3d(-8%, 6%, 0) scale(1.12);
+		border-radius: 58% 42% 38% 62% / 55% 60% 40% 45%;
+	}
+}
+
+@keyframes wc-drift-b {
+	from {
+		transform: translate3d(0, 0, 0) scale(1.05);
+		border-radius: 55% 45% 40% 60% / 38% 55% 45% 62%;
+	}
+	to {
+		transform: translate3d(7%, -9%, 0) scale(0.95);
+		border-radius: 40% 60% 58% 42% / 62% 42% 58% 38%;
+	}
+}
+
+/*
+ * Reduced motion is a contract, not a nicety: an indefinitely spinning ring and
+ * a looping shimmer are precisely what this setting exists to stop.
+ *
+ * Do NOT nuke `*` animations with !important — that also kills the composer
+ * spark (and anything else we deliberately animate) under a false-positive
+ * match, and made the ring look "missing" on machines with OS reduce-motion.
+ */
+@media (prefers-reduced-motion: reduce) {
+	.wc-composer-glow {
+		opacity: 0.55;
+	}
+
+	.wc-composer-shell[data-active='true'] .wc-composer-glow {
+		opacity: 0.85;
+	}
+
+	.wc-composer-spark {
+		animation: none !important;
+		opacity: 1;
+		inset: 0;
+		border-radius: inherit;
+		background: linear-gradient(
+			135deg,
+			var(--color-signal),
+			var(--color-teal),
+			var(--color-line) 55%
+		);
+	}
+
+	.wc-shimmer {
+		animation: none;
+		background: none;
+	}
+
+	.wc-orb {
+		animation: none !important;
+	}
+}

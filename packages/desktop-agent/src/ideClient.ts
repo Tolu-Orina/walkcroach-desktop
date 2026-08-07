@@ -1,7 +1,9 @@
 /**
- * Thin /ide BFF client for Desktop. Memory writes use source_surface=desktop.
+ * Thin /ide BFF client for Desktop. Memory uses `@walkcroach/sdk` → `/v1`
+ * with source_surface=desktop (Phase P2).
  */
 import type { ProjectMemoryBridge } from '@walkcroach/agent-engine';
+import { createHostMemoryBridge } from '@walkcroach/sdk';
 
 export const DESKTOP_SOURCE_SURFACE = 'desktop';
 
@@ -145,82 +147,11 @@ export function createDesktopMemoryBridge(params: {
   projectName?: string;
 }): ProjectMemoryBridge {
   const { client, getToken, projectId, projectName } = params;
-
-  async function requireToken(): Promise<string> {
-    const token = await getToken();
-    if (!token) {
-      throw new Error('Not signed in — project memory requires a Cognito token.');
-    }
-    return token;
-  }
-
-  return {
+  return createHostMemoryBridge({
+    getAccessToken: getToken,
     projectId,
     projectName,
-    async recall({ query, limit, sourceSurfaces }) {
-      const token = await requireToken();
-      const res = await ideFetch(client, '/ide/v1/memory/recall', {
-        method: 'POST',
-        token,
-        body: {
-          projectId,
-          query,
-          limit,
-          sourceSurfaces: sourceSurfaces ?? [
-            'web',
-            'chrome',
-            'ide',
-            DESKTOP_SOURCE_SURFACE,
-          ],
-        },
-      });
-      const data = await readJson<{
-        hits: Array<{
-          id: string;
-          kind: string;
-          text: string;
-          distance?: number;
-          sourceSurface?: string;
-        }>;
-      }>(res);
-      return data.hits ?? [];
-    },
-    async mirror({ text, kind }) {
-      const token = await requireToken();
-      const res = await ideFetch(client, '/ide/v1/memory/mirror', {
-        method: 'POST',
-        token,
-        body: {
-          projectId,
-          text,
-          kind: kind ?? 'decision',
-          // BFF may ignore; desktop clients always intend this surface.
-          sourceSurface: DESKTOP_SOURCE_SURFACE,
-        },
-      });
-      const data = await readJson<{ id: string }>(res);
-      return { id: data.id };
-    },
-    async listEntries({ limit, sourceSurfaces } = {}) {
-      const token = await requireToken();
-      const res = await ideFetch(client, '/ide/v1/memory/entries', {
-        token,
-        query: {
-          projectId,
-          sourceSurface: sourceSurfaces?.[0] ?? DESKTOP_SOURCE_SURFACE,
-          limit: limit !== undefined ? String(limit) : undefined,
-        },
-      });
-      const data = await readJson<{
-        entries: Array<{
-          id: string;
-          kind: string;
-          text: string;
-          sourceSurface: string;
-          createdAt: string;
-        }>;
-      }>(res);
-      return data.entries ?? [];
-    },
-  };
+    surface: DESKTOP_SOURCE_SURFACE,
+    getBaseUrl: () => client.baseUrl.replace(/\/$/, ''),
+  }) as ProjectMemoryBridge;
 }

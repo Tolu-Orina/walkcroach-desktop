@@ -13,13 +13,15 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const vscodeDir = join(root, 'vscode');
 const allowlistPath = join(root, 'product/surface-area-allowlist.txt');
-const pinPath = join(root, 'docs/phase-0/UPSTREAM_PIN.md');
+const productPath = join(root, 'product/product.walkcroach.json');
 
 function loadPinCommit() {
-  const md = readFileSync(pinPath, 'utf8');
-  const m = md.match(/Commit SHA\s*\|\s*`([a-f0-9]{40})`/i);
-  if (!m) throw new Error('Could not parse upstream commit from UPSTREAM_PIN.md');
-  return m[1];
+  const product = JSON.parse(readFileSync(productPath, 'utf8'));
+  const sha = String(product.walkcroach?.upstreamCommit || '').trim();
+  if (!/^[0-9a-f]{40}$/i.test(sha)) {
+    throw new Error('Could not read upstreamCommit from product/product.walkcroach.json');
+  }
+  return sha;
 }
 
 function loadAllowlist() {

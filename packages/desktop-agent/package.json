@@ -14,14 +14,17 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "build:bundle": "node scripts/bundle-engine.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@walkcroach/agent-engine": "file:../../../walkcroach/packages/agent-engine"
+    "@walkcroach/agent-engine": "file:../../../walkcroach/packages/agent-engine",
+    "@walkcroach/sdk": "file:../../../walkcroach/packages/sdk"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
+    "esbuild": "^0.25.9",
     "typescript": "^5.8.0",
     "vitest": "^3.2.4"
   },

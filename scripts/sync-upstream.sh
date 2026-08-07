@@ -87,7 +87,7 @@ set -e
 RECORD_DIR="${ROOT}/cadence/records"
 mkdir -p "${RECORD_DIR}"
 RECORD="${RECORD_DIR}/${STAMP}.md"
-UPSTREAM_DIR="${ROOT}/docs/upstream"
+UPSTREAM_DIR="${ROOT}/cadence/upstream"
 mkdir -p "${UPSTREAM_DIR}"
 
 {
@@ -104,7 +104,7 @@ mkdir -p "${UPSTREAM_DIR}"
   echo "- [ ] \`npm run audit:recommendations\`"
   echo "- [ ] \`npm run audit:surface-area\`"
   echo "- [ ] Release notes: Upstream absorbed vs WalkCroach-specific"
-  echo "- [ ] Update \`docs/upstream/README.md\` index"
+  echo "- [ ] Update \`cadence/upstream/README.md\` if conflicts"
 } > "${RECORD}"
 
 if [[ "${MERGE_STATUS}" -ne 0 ]]; then
