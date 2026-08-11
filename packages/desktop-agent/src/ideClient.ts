@@ -10,6 +10,8 @@ export const DESKTOP_SOURCE_SURFACE = 'desktop';
 export type IdeProject = {
   id: string;
   name: string;
+  /** Schema kind: knowledge=Project, app=App Builder (ADR-0004). */
+  kind?: string;
   status: string;
   updated_at: string;
 };

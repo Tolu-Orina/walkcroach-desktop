@@ -59,6 +59,12 @@ export type DesktopWorkbenchHooks = {
       input?: Record<string, unknown>;
     },
   ) => void;
+  /**
+   * Session-scoped formatOnSave suppress for the agent-run lifetime.
+   * Prefer {@link DesktopWorkbenchHooks.suppressFormatOnSave} when the workbench
+   * owns ConfigurationService; otherwise leave unset (Node FS writes skip formatters).
+   */
+  suppressFormatOnSave?: () => Promise<(() => Promise<void>) | void>;
 };
 
 export type DesktopHostDeps = {
@@ -73,6 +79,11 @@ export type DesktopHostDeps = {
    * resolveApproval ignores cross-session decisions.
    */
   sessionId?: string;
+  /**
+   * Optional top-level format suppress (Agent Host). Takes precedence over
+   * workbench.suppressFormatOnSave when both are set.
+   */
+  suppressFormatOnSave?: () => Promise<(() => Promise<void>) | void>;
 };
 
 export class DesktopHostAdapter implements HostAdapter {
@@ -116,6 +127,26 @@ export class DesktopHostAdapter implements HostAdapter {
       },
       { once: true },
     );
+  }
+
+  /**
+   * Begin session-scoped formatOnSave suppress. Returns restore fn (or undefined).
+   * Prefer deps.suppressFormatOnSave, else workbench hook.
+   */
+  async beginFormatOnSaveSuppress(): Promise<(() => Promise<void>) | undefined> {
+    const begin =
+      this.deps.suppressFormatOnSave ??
+      this.deps.workbench?.suppressFormatOnSave;
+    if (!begin) return undefined;
+    try {
+      const restore = await begin();
+      return restore ? restore : undefined;
+    } catch (err) {
+      this.deps.log?.(
+        `[desktop-host] formatOnSave suppress failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return undefined;
+    }
   }
 
   showDiffPreview(
@@ -300,6 +331,19 @@ export class DesktopHostAdapter implements HostAdapter {
     await fs.writeFile(abs, content, 'utf8');
   }
 
+  /** Stale-read / content-hash freshness — parity with IDE/CLI hosts. */
+  readonly supportsMtimeFreshness = true;
+
+  async getFileMtimeMs(rel: string): Promise<number | null> {
+    this.assertTrustedTools();
+    try {
+      const st = await fs.stat(this.resolvePath(rel));
+      return st.mtimeMs;
+    } catch {
+      return null;
+    }
+  }
+
   async listDir(rel: string): Promise<string[]> {
     this.assertTrustedTools();
     const abs = this.resolvePath(rel || '.');
@@ -424,7 +468,11 @@ export class DesktopHostAdapter implements HostAdapter {
 
   private requireRoot(): string {
     const root = this.getWorkspaceRoot();
-    if (!root) throw new Error('No workspace folder open');
+    if (!root) {
+      throw new Error(
+        'Open Folder (workspace root) before running the agent.',
+      );
+    }
     return root;
   }
 

@@ -229,9 +229,48 @@
 	transform: translateY(1px);
 }
 
+.wc-settings-btn.primary {
+	background: color-mix(in oklab, var(--color-signal) 28%, transparent);
+	border-color: color-mix(in oklab, var(--color-signal) 65%, var(--color-line));
+	font-weight: 600;
+}
+
+.wc-settings-btn.primary:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
 .wc-settings-btn.ghost {
 	border-color: var(--color-line);
 	background: transparent;
+}
+
+.wc-settings-account {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding-top: 12px;
+	border-top: 1px solid var(--color-line);
+}
+
+.wc-settings-account-status {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.wc-settings-error {
+	color: var(--color-ember);
+}
+
+.wc-settings-advanced {
+	margin-top: 8px;
+}
+
+.wc-settings-advanced summary {
+	cursor: pointer;
+	font-size: 12px;
+	opacity: 0.8;
+	margin-bottom: 8px;
 }
 
 .wc-settings-toggle {

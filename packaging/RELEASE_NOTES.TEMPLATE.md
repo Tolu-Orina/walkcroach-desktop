@@ -24,7 +24,7 @@ List changes under `contrib/walkcroach/`, `product/`, `packages/desktop-agent/`,
 - [ ] macOS Developer ID + notarized
 - [ ] Windows Azure Artifact Signing
 - [ ] Linux checksums (+ GPG if used)
-- [x] **Interim:** unsigned Windows portable only — do not check the boxes above for preview releases (NFR-F05)
+- [x] **Interim:** unsigned Windows portable on the preview channel — do not check the boxes above until signing is funded (product remains production-grade)
 
 ## Update
 

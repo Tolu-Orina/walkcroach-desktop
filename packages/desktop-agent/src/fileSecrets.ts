@@ -61,7 +61,12 @@ export class FileSecrets implements HostSecrets {
     const raw = store.entries[key];
     if (raw === undefined) return undefined;
     if (!this.opts.decrypt) return raw;
-    return this.opts.decrypt(raw);
+    try {
+      return await this.opts.decrypt(raw);
+    } catch {
+      // Legacy plaintext written before encryption was wired.
+      return raw;
+    }
   }
 
   async store(key: string, value: string): Promise<void> {

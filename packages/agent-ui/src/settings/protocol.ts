@@ -8,7 +8,7 @@
  * Keep in sync — webview cannot import workbench modules.
  */
 
-export const SETTINGS_PROTOCOL_VERSION = 1 as const;
+export const SETTINGS_PROTOCOL_VERSION = 3 as const;
 
 export type WalkCroachSettingsTab =
 	| 'general'
@@ -19,10 +19,11 @@ export type WalkCroachSettingsTab =
 	| 'updates'
 	| 'vscode';
 
+export type WalkCroachSettingsAuthPhase = 'idle' | 'connecting' | 'signedIn' | 'error';
+
 export type WalkCroachSettingsValues = {
 	apiBaseUrl: string;
-	cognitoHostedUiUrl: string;
-	cognitoClientId: string;
+	webAppUrl: string;
 	crashReports: boolean;
 	crashEndpoint: string;
 	updateChannel: 'stable' | 'insiders';
@@ -31,6 +32,8 @@ export type WalkCroachSettingsValues = {
 	themeTeal: string;
 	themeEmber: string;
 	signedIn: boolean;
+	authPhase: WalkCroachSettingsAuthPhase;
+	authError?: string;
 	linkedProjectId?: string;
 	linkedProjectName?: string;
 };

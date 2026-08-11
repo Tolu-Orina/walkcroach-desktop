@@ -14,7 +14,7 @@ Monorepo pointer: `walkcroach/docs/walkcroach-desktop.md`
 
 ## Status (short)
 
-Native agent path + Path B Agents Window + fleet soft-cap are implemented. CRDB panels are mostly demo. Public ship = **unsigned Windows portable** tooling (first Release is an operator step). Details: STATUS.md.
+**Production-grade** WalkCroach surface (parity with IDE / CLI / Web / Chrome): native agent path, Path B Agents Window, live CRDB/MCP when configured, Web PKCE auth. Public distribution is **unsigned preview** Windows portable/Setup only — not dogfood. Details: STATUS.md.
 
 ## Layout
 

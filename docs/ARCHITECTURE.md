@@ -10,13 +10,15 @@ This document describes **how the product is structured in code today** — not 
 
 ## 1. What it is
 
-WalkCroach Desktop is a **Code OSS fork** that embeds WalkCroach’s agent engine in the VS Code **Agent Host** process and hosts WalkCroach UI under `contrib/walkcroach/`.
+WalkCroach Desktop is a **production-grade Code OSS fork** — maturity on par with the IDE extension, CLI, and other WalkCroach surfaces. It embeds WalkCroach’s agent engine in the VS Code **Agent Host** process and hosts WalkCroach UI under `contrib/walkcroach/`.
 
 It is **not**:
 
 - An Electron shell around the VS Code extension
 - A Microsoft Marketplace–proxied build
-- A signed “general release” (public ship is unsigned Windows portable preview — see SHIPPING)
+- A **signed** installer yet (current public channel is **unsigned preview** Windows portable — see SHIPPING)
+
+Distribution caveat only: **unsigned + preview channel**. That does not lower product maturity relative to other surfaces.
 
 Shared brain with other surfaces: `@walkcroach/agent-engine` in the sibling `walkcroach/` monorepo. Shared control plane: WalkCroach BFF `/ide` (auth, project link, memory).
 
@@ -97,7 +99,7 @@ Packaged bundle is **CJS** (`createRequire`) because AWS SDK / MCP are CommonJS-
 | View ID | Title | Implementation |
 |---------|-------|----------------|
 | `…chat` | Agent | Webview → `agent-ui.js` |
-| `…memory` | Memory | Native pane; live BFF when linked, else demo |
+| `…memory` | Memory | Native pane; live `/v1/memory` when linked |
 | `…migration` | Import | Migration scan/import (hidden by default) |
 | `…incompatibles` | Incompatibles | Proprietary catalog (hidden) |
 | `…skills` | Skills | Demo skill list (hidden) |
@@ -106,7 +108,7 @@ Stock Chat view is deregistered; `chat.agent.enabled` stays false. Title-bar “
 
 ### Panel — `workbench.view.walkcroach.crdb`
 
-Schema · Query · Audit · ccloud · Telemetry — panes are real; **data path is mostly demo fixtures** in `WalkCroachCrdbService` (see STATUS).
+Schema · Query · Audit · ccloud · Telemetry — **live** via Workbench → Agent Host CRDB RPC → `CrdbPanelSession` (`demoMode: false`) + Managed MCP / `ccloud`. Unconfigured credentials fail closed (Configure CockroachDB). Auth for account link is Web `/connect/ide` PKCE only.
 
 ### Editors
 
@@ -142,7 +144,8 @@ Soft parallel cap: **≤6** with explicit force (`common/fleet.ts`). Isolation i
 |---------|-----------|
 | UI tokens / project link | `ISecretStorageService` |
 | Host-visible mirror | `userDataPath/walkcroach/secrets.json` (`FileSecrets` / `hostSecretsMirror`) |
-| Online project memory | `/ide` when Cognito token + projectId present (`source_surface=desktop`) |
+| Online project memory | `/ide` when Web PKCE (or paste) token + projectId present (`source_surface=desktop`) |
+| Live CRDB panels / agent MCP tools | Host `CrdbPanelSession` + mirrored `SECRET_KEYS` (mcp / ccloud) |
 | Durable offline buffer | Classes exist under `.walkcroach/durable/` — **not product-wired** (see STATUS) |
 
 Auth UX today: open Hosted UI / paste access token (PKCE not wired).
@@ -170,7 +173,7 @@ Notable fields today:
 1. **Native Agent Host**, not a fifth `runAgentLoop` host and not “extension-only” Desktop.
 2. **Open VSX only** — never Microsoft Marketplace proxy.
 3. **Path B Agents Window** — WalkCroach fleet on Agent Host; do not enable Microsoft Agents Window for WalkCroach.
-4. **Unsigned Windows portable preview** until signing is funded.
+4. **Unsigned preview** Windows portable until signing/notarization is funded — product remains production-grade and surface-parity; do not frame as dogfood.
 5. Fork product code only under allowlisted paths; Agent Host provider is the intentional `platform/` exception.
 
 ---

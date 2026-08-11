@@ -18,7 +18,6 @@ import {
 	FleetTabBar,
 	LaunchFleetPanel,
 } from './fleet';
-import { PalettePicker } from './palette';
 import type { AgentSnapshot, HostMessage, ViewMessage } from './protocol';
 import { PROTOCOL_VERSION } from './protocol';
 
@@ -78,11 +77,12 @@ export function App() {
 	const activeId = snapshot.activeFleetId ?? sessions[0]?.id;
 	const layout = snapshot.fleetLayout ?? 'tabs';
 	const surface = snapshot.surface ?? 'aux';
-	const showFleetChrome = sessions.length >= 1;
-	const showGrid =
-		layout === 'grid' || (surface === 'agentsWindow' && sessions.length > 1);
-	const showLayoutToggle = surface === 'agentsWindow' || sessions.length > 1;
-	const showLaunchPanel = surface === 'agentsWindow' || Boolean(snapshot.softCapNotice);
+	const isAgentsWindow = surface === 'agentsWindow';
+	/** Aux stays lean: mode + transcript + composer + approvals. Fleet chrome lives in Agents Window. */
+	const showFleetChrome = isAgentsWindow && sessions.length >= 1;
+	const showGrid = isAgentsWindow && (layout === 'grid' || sessions.length > 1);
+	const showLayoutToggle = isAgentsWindow;
+	const showLaunchPanel = isAgentsWindow;
 	const isEmpty = snapshot.turns.length === 0 && snapshot.approvals.length === 0;
 
 	return (
@@ -94,11 +94,6 @@ export function App() {
 				['--color-ember' as string]: snapshot.brand.ember,
 			}}
 		>
-			<div className="wc-orbs" aria-hidden="true">
-				<div className="wc-orb wc-orb--signal" />
-				<div className="wc-orb wc-orb--teal" />
-			</div>
-
 			<div className="relative z-20 flex items-center gap-2">
 				<div className="min-w-0 flex-1">
 					<StatusLine
@@ -123,10 +118,6 @@ export function App() {
 						Agents Window
 					</button>
 				)}
-				<PalettePicker
-					brand={snapshot.brand}
-					onApply={b => post({ type: 'setBrand', brand: b })}
-				/>
 			</div>
 
 			{showLaunchPanel && (
@@ -204,9 +195,20 @@ export function App() {
 											post({
 												type: 'resolveApproval',
 												stepId: req.stepId,
-												sessionId: req.sessionId ?? snapshot.activeFleetId,
 												decision: d,
+												sessionId: req.sessionId,
 											})
+										}
+										onOpenDiff={
+											req.kind === 'diff' && req.before !== undefined && req.after !== undefined && req.path
+												? () =>
+													post({
+														type: 'openDiff',
+														path: req.path!,
+														before: req.before!,
+														after: req.after!,
+													})
+												: undefined
 										}
 									/>
 								))}
@@ -216,16 +218,16 @@ export function App() {
 				</div>
 			</div>
 
-			<div className="relative z-10">
+			<div className="relative z-20 shrink-0 border-t border-line pt-2">
 				<Composer
 					mode={snapshot.mode}
 					phase={snapshot.phase}
 					isMac={snapshot.isMac}
-					model={snapshot.model}
-					onSubmit={text => post({ type: 'submit', prompt: text })}
+					onSubmit={prompt => post({ type: 'submit', prompt })}
 					onCancel={() => post({ type: 'cancel' })}
-					onChangeMode={m => post({ type: 'setMode', mode: m })}
-					onChangeModel={m => post({ type: 'setModel', model: m })}
+					onChangeMode={mode => post({ type: 'setMode', mode })}
+					model={snapshot.model}
+					onChangeModel={model => post({ type: 'setModel', model })}
 				/>
 			</div>
 		</div>

@@ -19,5 +19,6 @@ secrets/
 vscode/product.json.oss.bak
 infra/desktop-crash/.build/
 packaging/dist/
+packaging/inno/generated/
 VSCode-win32-*/
 packages/desktop-agent/dist-bundle/

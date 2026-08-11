@@ -2,10 +2,10 @@
   "name": "walkcroach-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "WalkCroach Desktop — Code OSS fork (unsigned Windows portable preview)",
+  "description": "WalkCroach Desktop — production-grade Code OSS fork (unsigned preview Windows portable)",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.18"
   },
   "scripts": {
     "verify": "node scripts/verify.mjs",
@@ -22,6 +22,9 @@
     "package:crash-lambda": "node scripts/package-crash-lambda.mjs",
     "package:engine-bundle": "node scripts/package-engine-bundle.mjs",
     "package:windows-portable": "node scripts/package-windows-portable.mjs",
+    "size:census": "node scripts/size-census.mjs",
+    "trim:package": "node scripts/trim-package.mjs",
+    "clean:package": "node scripts/clean-package.mjs",
     "publish:desktop-cdn": "node scripts/publish-desktop-cdn.mjs",
     "inject:packaged-assets": "node scripts/inject-walkcroach-packaged-assets.mjs",
     "release:windows-portable": "node scripts/release-windows-portable.mjs",

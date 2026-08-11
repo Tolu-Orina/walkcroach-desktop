@@ -15,6 +15,14 @@
   "win32NameVersion": "WalkCroach Desktop",
   "win32RegValueName": "WalkCroach",
   "win32ShellNameShort": "WalkCroach",
+  "win32x64AppId": "{{E39E7D78-8063-4D8D-B5B7-8463534B492D}",
+  "win32arm64AppId": "{{64C196DE-9FBC-4015-AD76-A2CAAA28592B}",
+  "win32x64UserAppId": "{{F2CEEC9F-5AF2-4F39-88D3-E602ED901826}",
+  "win32arm64UserAppId": "{{A4A2A37C-F6BC-43A5-A9BE-07FB53D9D387}",
+  "win32ContextMenu": {
+    "x64": { "clsid": "{65E10523-0545-4F4C-9034-9CB9C7091209}" },
+    "arm64": { "clsid": "{A3E60220-88C2-4505-A760-B5192883FD44}" }
+  },
   "licenseUrl": "https://github.com/walkcroach/walkcroach/blob/main/LICENSE",
   "reportIssueUrl": "https://github.com/walkcroach/walkcroach-desktop/issues/new",
   "linkProtectionTrustedDomains": ["https://open-vsx.org"],
@@ -40,6 +48,6 @@
     "interimDistribution": "windows-portable",
     "previewChannel": "insider",
     "crashEndpoint": "",
-    "notes": "Docs: docs/ARCHITECTURE.md · STATUS.md · SHIPPING.md. Interim: unsigned Windows portable insider preview."
+    "notes": "Docs: docs/ARCHITECTURE.md · STATUS.md · SHIPPING.md. Production-grade surface; interim distribution: unsigned Windows portable insider preview (signing deferred)."
   }
 }

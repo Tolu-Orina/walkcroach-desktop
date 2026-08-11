@@ -33,6 +33,16 @@ export type SessionOptions = {
   };
   onEvent?: (ev: AgentEvent) => void;
   coalesceMs?: number;
+  /** When set, mirror_project_memory failures buffer offline for later flush. */
+  durableStore?: {
+    bufferWrite(input: {
+      kind: string;
+      text: string;
+      projectId: string;
+      id?: string;
+    }): Promise<{ id: string }>;
+    flush(token: string): Promise<{ pushed: number; failed: number }>;
+  };
 };
 
 export type SessionHandle = {
@@ -76,6 +86,8 @@ export function createSessionHost(
     secrets: base.secrets,
     log: base.log,
     workbench: base.workbench,
+    suppressFormatOnSave: base.suppressFormatOnSave,
+    sessionId: base.sessionId,
     emit: (ev) => {
       if (ev.type === 'token_delta') {
         coalescer.push(ev.text);
@@ -144,12 +156,45 @@ export function startDesktopSession(
 
     let projectMemory: ProjectMemoryBridge | null = null;
     if (opts.ide?.projectId) {
-      projectMemory = createDesktopMemoryBridge({
+      const inner = createDesktopMemoryBridge({
         client: opts.ide.client,
         getToken: opts.ide.getToken,
         projectId: opts.ide.projectId,
         projectName: opts.ide.projectName,
       });
+      const projectId = opts.ide.projectId;
+      const durable = opts.durableStore;
+      if (durable) {
+        projectMemory = {
+          projectId: inner.projectId,
+          projectName: inner.projectName,
+          recall: (p) => inner.recall(p),
+          listEntries: inner.listEntries?.bind(inner),
+          async mirror(params) {
+            try {
+              const token = await opts.ide!.getToken();
+              if (!token) {
+                const buffered = await durable.bufferWrite({
+                  kind: params.kind ?? 'decision',
+                  text: params.text,
+                  projectId,
+                });
+                return { id: buffered.id };
+              }
+              return await inner.mirror(params);
+            } catch {
+              const buffered = await durable.bufferWrite({
+                kind: params.kind ?? 'decision',
+                text: params.text,
+                projectId,
+              });
+              return { id: buffered.id };
+            }
+          },
+        };
+      } else {
+        projectMemory = inner;
+      }
     }
 
     // D5.1 — resume Bedrock transcript from `.walkcroach/sessions/` when present.
@@ -167,29 +212,50 @@ export function startDesktopSession(
 
     const ids = host.ensureEngineSessionId();
 
-    await runAgentLoop({
-      host,
-      prompt: opts.prompt,
-      signal: abort.signal,
-      mode: opts.mode,
-      mcpConfig,
-      ccloudApiKey: ccloudApiKey || undefined,
-      projectMemory,
-      includePhaseB: true,
-      priorMessages,
-      followUp,
-      onSessionMessages: (messages) => {
-        void host
-          .persistAgentSession?.({
-            sessionId: ids.sessionId,
-            messages,
-            createdAt: ids.createdAt,
-          })
-          .catch(() => {
-            /* best-effort disk persist */
+    let restoreFormatOnSave: (() => Promise<void>) | undefined;
+    try {
+      restoreFormatOnSave = await host.beginFormatOnSaveSuppress();
+      await runAgentLoop({
+        host,
+        prompt: opts.prompt,
+        signal: abort.signal,
+        mode: opts.mode,
+        mcpConfig,
+        ccloudApiKey: ccloudApiKey || undefined,
+        projectMemory,
+        includePhaseB: true,
+        priorMessages,
+        followUp,
+        onSessionMessages: (messages) => {
+          void host
+            .persistAgentSession?.({
+              sessionId: ids.sessionId,
+              messages,
+              createdAt: ids.createdAt,
+            })
+            .catch(() => {
+              /* best-effort disk persist */
+            });
+        },
+      });
+      // Replay any offline durable writes after a successful turn.
+      if (opts.durableStore && opts.ide?.getToken) {
+        const token = await opts.ide.getToken();
+        if (token) {
+          await opts.durableStore.flush(token).catch(() => {
+            /* best-effort */
           });
-      },
-    });
+        }
+      }
+    } finally {
+      if (restoreFormatOnSave) {
+        try {
+          await restoreFormatOnSave();
+        } catch {
+          /* best-effort restore */
+        }
+      }
+    }
   })();
 
   return {

@@ -26,8 +26,7 @@ const NAV: Array<{ id: WalkCroachSettingsTab; label: string; hint?: string }> = 
 
 const EMPTY: WalkCroachSettingsValues = {
 	apiBaseUrl: '',
-	cognitoHostedUiUrl: '',
-	cognitoClientId: '',
+	webAppUrl: '',
 	crashReports: false,
 	crashEndpoint: '',
 	updateChannel: 'stable',
@@ -36,6 +35,7 @@ const EMPTY: WalkCroachSettingsValues = {
 	themeTeal: '#6B9EFF',
 	themeEmber: '#F07167',
 	signedIn: false,
+	authPhase: 'idle',
 };
 
 export function SettingsApp() {
@@ -165,11 +165,20 @@ function GeneralSection({
 	values: WalkCroachSettingsValues;
 	set: (k: keyof WalkCroachSettingsValues, v: string | boolean) => void;
 }) {
+	const statusLabel =
+		values.authPhase === 'signedIn' || values.signedIn
+			? `Signed in${values.linkedProjectName ? ` · ${values.linkedProjectName}` : values.linkedProjectId ? ` · ${values.linkedProjectId}` : ''}`
+			: values.authPhase === 'connecting'
+				? 'Connecting — finish sign-in in the browser…'
+				: values.authPhase === 'error'
+					? (values.authError ?? 'Sign-in failed')
+					: 'Not signed in';
+
 	return (
 		<>
 			<SectionHeader
 				title="General"
-				body="Connection to the shared /ide BFF and Cognito. Secrets stay in OS keychain — never in settings.json."
+				body="Connect your WalkCroach account and the shared /ide BFF. Secrets stay in OS keychain — never in settings.json."
 			/>
 			<div className="wc-settings-stack">
 				<Field label="API base URL" hint="No trailing slash. Default http://localhost:3003">
@@ -180,43 +189,47 @@ function GeneralSection({
 						spellCheck={false}
 					/>
 				</Field>
-				<Field label="Cognito Hosted UI URL">
+				<Field label="Web app URL" hint="Used for Connect (PKCE). Example https://app.walkcroach.dev">
 					<input
 						className="wc-settings-input"
-						value={values.cognitoHostedUiUrl}
-						onChange={e => set('cognitoHostedUiUrl', e.target.value)}
+						value={values.webAppUrl}
+						onChange={e => set('webAppUrl', e.target.value)}
 						spellCheck={false}
-						placeholder="https://…/oauth2/authorize?…"
+						placeholder="https://app.walkcroach.dev"
 					/>
 				</Field>
-				<Field label="Cognito client ID">
-					<input
-						className="wc-settings-input"
-						value={values.cognitoClientId}
-						onChange={e => set('cognitoClientId', e.target.value)}
-						spellCheck={false}
-					/>
-				</Field>
-				<div className="wc-settings-card">
-					<div className="wc-settings-card-title">Account</div>
-					<p className="wc-settings-hint">
-						{values.signedIn
-							? `Signed in${values.linkedProjectName ? ` · linked ${values.linkedProjectName}` : values.linkedProjectId ? ` · linked ${values.linkedProjectId}` : ''}`
-							: 'Signed out — paste a token or open Hosted UI from the command palette.'}
-					</p>
+				<div className="wc-settings-account" data-phase={values.authPhase}>
+					<div className="wc-settings-account-status" role="status">
+						{statusLabel}
+					</div>
+					{values.authPhase === 'error' && values.authError ? (
+						<p className="wc-settings-hint wc-settings-error">{values.authError}</p>
+					) : null}
 					<div className="wc-settings-actions">
-						<button type="button" className="wc-settings-btn" onClick={() => postToHost({ type: 'runCommand', commandId: 'walkcroach.auth.pasteToken' })}>
+						<button
+							type="button"
+							className="wc-settings-btn primary"
+							disabled={values.authPhase === 'connecting'}
+							onClick={() => postToHost({ type: 'runCommand', commandId: 'walkcroach.auth.signIn' })}
+						>
+							{values.authPhase === 'connecting' ? 'Connecting…' : 'Connect'}
+						</button>
+						<button
+							type="button"
+							className="wc-settings-btn ghost"
+							onClick={() => postToHost({ type: 'runCommand', commandId: 'walkcroach.auth.pasteToken' })}
+						>
 							Paste token
 						</button>
-						<button type="button" className="wc-settings-btn" onClick={() => postToHost({ type: 'runCommand', commandId: 'walkcroach.auth.signIn' })}>
-							Sign in
-						</button>
-						<button type="button" className="wc-settings-btn ghost" onClick={() => postToHost({ type: 'runCommand', commandId: 'walkcroach.auth.signOut' })}>
-							Sign out
-						</button>
-						<button type="button" className="wc-settings-btn ghost" onClick={() => postToHost({ type: 'runCommand', commandId: 'walkcroach.project.link' })}>
-							Link project
-						</button>
+						{(values.signedIn || values.authPhase === 'signedIn') ? (
+							<button
+								type="button"
+								className="wc-settings-btn ghost"
+								onClick={() => postToHost({ type: 'runCommand', commandId: 'walkcroach.auth.signOut' })}
+							>
+								Sign out
+							</button>
+						) : null}
 					</div>
 				</div>
 			</div>
@@ -235,7 +248,7 @@ function AgentSection({
 		<>
 			<SectionHeader
 				title="Agent"
-				body="Autonomy gates tool approvals. Tier 3 destructive / ccloud actions always require confirmation."
+				body="Autonomy gates tool approvals. Tier 3 destructive / ccloud actions always require confirmation. Chat · Plan · Agent modes live in the Agent sidebar."
 			/>
 			<div className="wc-settings-stack">
 				<Field label="Autonomy">
@@ -248,12 +261,6 @@ function AgentSection({
 						<option value="low_friction">Low friction — narrow edits only</option>
 					</select>
 				</Field>
-				<div className="wc-settings-card">
-					<div className="wc-settings-card-title">Modes</div>
-					<p className="wc-settings-hint">
-						Chat (read-only) · Plan (review) · Agent (execute). Switch modes from the Agent sidebar — not duplicated here.
-					</p>
-				</div>
 			</div>
 		</>
 	);
@@ -263,22 +270,22 @@ function MemorySection({ values }: { values: WalkCroachSettingsValues }) {
 	return (
 		<>
 			<SectionHeader
-				title="Memory"
-				body="Cross-surface recall uses source_surface=desktop. Durable offline buffer lives under .walkcroach/durable/."
+				title="Memory · Agent"
+				body="Cross-surface recall uses source_surface=desktop via the SDK /v1/memory contract. Cockroach Managed MCP and ccloud credentials unlock Schema/Query panels and agent tools."
 			/>
 			<div className="wc-settings-stack">
-				<div className="wc-settings-card">
-					<div className="wc-settings-card-title">Project link</div>
-					<p className="wc-settings-hint">
-						{values.linkedProjectId
-							? `Linked to ${values.linkedProjectName ?? values.linkedProjectId}`
-							: 'No linked project — recall stays local until you link.'}
-					</p>
-					<div className="wc-settings-actions">
-						<button type="button" className="wc-settings-btn" onClick={() => postToHost({ type: 'runCommand', commandId: 'walkcroach.project.link' })}>
-							Link project
-						</button>
-					</div>
+				<p className="wc-settings-hint">
+					{values.linkedProjectId
+						? `Linked to ${values.linkedProjectName ?? values.linkedProjectId}`
+						: 'No linked project — recall stays local until you link.'}
+				</p>
+				<div className="wc-settings-actions">
+					<button type="button" className="wc-settings-btn" onClick={() => postToHost({ type: 'runCommand', commandId: 'walkcroach.project.link' })}>
+						Link project
+					</button>
+					<button type="button" className="wc-settings-btn primary" onClick={() => postToHost({ type: 'runCommand', commandId: 'walkcroach.crdb.configure' })}>
+						Configure CockroachDB
+					</button>
 				</div>
 			</div>
 		</>

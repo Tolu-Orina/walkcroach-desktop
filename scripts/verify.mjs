@@ -118,8 +118,47 @@ if (hasVscode) {
     contrib.includes('WalkCroachAgentWebviewPane') &&
       contrib.includes('WALK_CROACH_MEMORY_VIEW_ID') &&
       contrib.includes('WALK_CROACH_CRDB_CONTAINER_ID') &&
+      contrib.includes('WalkCroachSchemaViewPane') &&
       contrib.includes('WalkCroachCrashReporter') &&
-      contrib.includes('IWalkCroachAgentService'),
+      contrib.includes('IWalkCroachAgentService') &&
+      !contrib.includes('P3_CRDB_PANES_DEREGISTERED'),
+  );
+  check(
+    'p2-diff-and-pkce',
+    contrib.includes('WALK_CROACH_DIFF_OPEN_CMD') &&
+      contrib.includes('WalkCroachAuthUrlHandler') &&
+      contrib.includes('webAppUrl') &&
+      !contrib.includes('WALK_CROACH_DEMO_CMD'),
+  );
+  check(
+    'live-crdb-mcp',
+    contrib.includes('WALK_CROACH_CONFIGURE_CRDB_CMD') ||
+      read('vscode/src/vs/workbench/contrib/walkcroach/browser/walkcroach.actions.ts').includes(
+        'WALK_CROACH_CONFIGURE_CRDB_CMD',
+      ),
+  );
+  check(
+    'live-crdb-rpc',
+    read('vscode/src/vs/platform/agentHost/common/walkcroachRpc.ts').includes('WC_CRDB_RPC_PREFIX') &&
+      read('vscode/src/vs/platform/agentHost/node/walkcroach/walkcroachEngineRuntime.ts').includes(
+        'getOrCreateCrdbPanel',
+      ) &&
+      read('vscode/src/vs/workbench/contrib/walkcroach/browser/crdb/walkcroachCrdbService.ts').includes(
+        'invokeCrdbRpc',
+      ) &&
+      !read('vscode/src/vs/workbench/contrib/walkcroach/browser/crdb/walkcroachCrdbService.ts').includes(
+        'DEMO_SCHEMA',
+      ),
+  );
+
+  check(
+    'dead-native-chat-removed',
+    !existsSync(
+      join(root, 'vscode/src/vs/workbench/contrib/walkcroach/browser/chat/walkcroachChatViewPane.ts'),
+    ) &&
+      !existsSync(
+        join(root, 'vscode/src/vs/workbench/contrib/walkcroach/browser/chat/walkcroachAgentComponents.ts'),
+      ),
   );
 
   const main = read('vscode/src/vs/workbench/workbench.common.main.ts');
@@ -224,6 +263,7 @@ run('audit:incompatibles', 'node', ['scripts/audit-incompatibles.mjs']);
 run('audit:release-notes', 'node', ['scripts/audit-release-notes.mjs']);
 if (hasVscode) {
   run('audit:surface-area', 'node', ['scripts/audit-surface-area.mjs']);
+  run('sync:agent-protocol', 'node', ['scripts/sync-agent-protocol.mjs']);
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────

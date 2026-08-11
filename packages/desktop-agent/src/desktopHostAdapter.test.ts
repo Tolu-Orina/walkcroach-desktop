@@ -45,6 +45,22 @@ describe('DesktopHostAdapter trust + fs', () => {
     await expect(host.readFile('../escape.ts')).rejects.toThrow(/escapes/i);
   });
 
+  it('getFileMtimeMs returns a number for an existing file', async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'wc-desktop-mtime-'));
+    const host = new DesktopHostAdapter({
+      getWorkspaceRoot: () => dir,
+      isTrustedWorkspace: () => true,
+      secrets: new MemorySecrets(),
+      emit: () => {},
+    });
+    expect(host.supportsMtimeFreshness).toBe(true);
+    await host.writeFile('stamp.ts', 'x\n');
+    const mtime = await host.getFileMtimeMs('stamp.ts');
+    expect(typeof mtime).toBe('number');
+    expect(mtime).toBeGreaterThan(0);
+    expect(await host.getFileMtimeMs('missing.ts')).toBeNull();
+  });
+
   it('emits approval_request in strict mode', async () => {
     const events: string[] = [];
     const host = new DesktopHostAdapter({

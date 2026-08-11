@@ -294,12 +294,16 @@ const APPROVAL_UI = {
 export function ApprovalCard({
 	req,
 	onDecide,
+	onOpenDiff,
 }: {
 	req: ApprovalRequest;
 	onDecide: (d: 'approve' | 'reject') => void;
+	onOpenDiff?: () => void;
 }) {
 	const { Icon, label, tone } = APPROVAL_UI[req.state];
 	const detail = req.cmd ?? req.path ?? req.detail;
+	const showDiff = req.kind === 'diff' && (req.before !== undefined || req.after !== undefined);
+	const truncate = (s: string, n = 2400) => (s.length > n ? `${s.slice(0, n)}\n…` : s);
 	return (
 		<motion.div
 			layout
@@ -315,10 +319,31 @@ export function ApprovalCard({
 					<Icon size={14} aria-hidden />
 					<span className="font-medium">{label}</span>
 				</div>
-				{detail && (
+				{detail && !showDiff && (
 					<pre className="mb-2 overflow-x-auto rounded-sm bg-canvas px-2.5 py-2 font-mono text-meta whitespace-pre-wrap text-paper">
 						{detail}
 					</pre>
+				)}
+				{showDiff && (
+					<div className="mb-2 grid gap-2">
+						{req.path ? (
+							<div className="font-mono text-meta text-mist">{req.path}</div>
+						) : null}
+						<div className="grid gap-2 sm:grid-cols-2">
+							<div>
+								<div className="mb-1 text-meta uppercase tracking-wide text-mist">Before</div>
+								<pre className="max-h-40 overflow-auto rounded-sm bg-canvas px-2.5 py-2 font-mono text-meta whitespace-pre-wrap text-paper">
+									{truncate(req.before ?? '')}
+								</pre>
+							</div>
+							<div>
+								<div className="mb-1 text-meta uppercase tracking-wide text-mist">After</div>
+								<pre className="max-h-40 overflow-auto rounded-sm bg-canvas px-2.5 py-2 font-mono text-meta whitespace-pre-wrap text-paper">
+									{truncate(req.after ?? '')}
+								</pre>
+							</div>
+						</div>
+					</div>
 				)}
 				<div className="mb-3 text-meta leading-relaxed text-mist">
 					{req.detail || (req.kind === 'command'
@@ -326,9 +351,12 @@ export function ApprovalCard({
 						: 'Requires approval — modifies files in this workspace and cannot be auto-approved at any autonomy setting.')}
 				</div>
 				{req.state === 'pending' && (
-					<div className="flex items-center gap-2">
+					<div className="flex flex-wrap items-center gap-2">
 						<Button variant="primary" onClick={() => onDecide('approve')}>Approve</Button>
 						<Button variant="outline" onClick={() => onDecide('reject')}>Decline</Button>
+						{onOpenDiff ? (
+							<Button variant="ghost" onClick={onOpenDiff}>Open diff</Button>
+						) : null}
 					</div>
 				)}
 			</div>
@@ -495,8 +523,12 @@ export function Composer({
 				onBlur={onShellBlur}
 			>
 				{/* Decorative flash — real DOM, not a pseudo (webview-safe). */}
-				<div className="wc-composer-spark" aria-hidden="true" />
-				<div className="wc-composer-glow" aria-hidden="true" />
+				{/* Wrapped so the clipping that contains them does not also clip
+				    the mode/model dropdowns, which open upward. */}
+				<div className="wc-composer-fx" aria-hidden="true">
+					<div className="wc-composer-spark" />
+					<div className="wc-composer-glow" />
+				</div>
 
 				<div className="wc-composer">
 					<textarea

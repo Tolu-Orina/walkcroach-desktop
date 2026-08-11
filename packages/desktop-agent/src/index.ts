@@ -1,6 +1,14 @@
 export { DesktopHostAdapter, isPathInsideWorkspace } from './desktopHostAdapter.js';
 export type { DesktopHostDeps, DesktopWorkbenchHooks } from './desktopHostAdapter.js';
 export {
+  withFormatOnSaveSuppressed,
+  beginFormatOnSaveSuppress,
+} from './formatOnSaveSuppress.js';
+export type {
+  FormatOnSaveSnapshot,
+  FormatOnSaveAccess,
+} from './formatOnSaveSuppress.js';
+export {
   createDesktopHost,
   createSessionHost,
   startDesktopSession,
@@ -44,3 +52,10 @@ export type {
   CrdbPanelDeps,
   CrdbPanelCounters,
 } from './crdbPanel.js';
+
+/** Re-export for Agent Host CRDB panel wiring (live MCP + ccloud). */
+export {
+  runCcloud,
+  loadMcpConfigFromSecrets,
+  DEFAULT_MCP_URL,
+} from '@walkcroach/agent-engine';

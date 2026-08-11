@@ -151,9 +151,9 @@ export class CrdbPanelSession {
     return full;
   }
 
-  /** Schema browser — MCP list_tables / get_table_schema, or demo tree. */
+  /** Schema browser — MCP list_tables / get_table_schema. Fail-closed when live and unconfigured. */
   async listSchema(): Promise<CrdbSchemaNode[]> {
-    if (this.demoMode || !(await this.tryConnectMcp())) {
+    if (this.demoMode) {
       this.pushAudit({
         kind: 'mcp',
         action: 'list_schema',
@@ -162,6 +162,17 @@ export class CrdbPanelSession {
       });
       this.telemetry.bump('mcp_call');
       return DEMO_SCHEMA;
+    }
+    if (!(await this.tryConnectMcp())) {
+      this.pushAudit({
+        kind: 'mcp',
+        action: 'list_schema',
+        detail: 'MCP not configured',
+        outcome: 'error',
+      });
+      throw new Error(
+        'CockroachDB MCP is not configured. Run WalkCroach: Configure CockroachDB.',
+      );
     }
 
     const tablesRaw = await this.mcp!.callTool('list_tables', {});
@@ -188,7 +199,7 @@ export class CrdbPanelSession {
   }
 
   async getTableSchema(table: string): Promise<string> {
-    if (this.demoMode || !(await this.tryConnectMcp())) {
+    if (this.demoMode) {
       const hit = findTable(DEMO_SCHEMA, table);
       this.telemetry.bump('mcp_call');
       const text = hit
@@ -201,6 +212,11 @@ export class CrdbPanelSession {
         outcome: hit ? 'ok' : 'error',
       });
       return text;
+    }
+    if (!(await this.tryConnectMcp())) {
+      throw new Error(
+        'CockroachDB MCP is not configured. Run WalkCroach: Configure CockroachDB.',
+      );
     }
     const out = await this.mcp!.callTool('get_table_schema', { table });
     this.telemetry.bump('mcp_call');
@@ -260,7 +276,7 @@ export class CrdbPanelSession {
       }
     }
 
-    if (this.demoMode || !(await this.tryConnectMcp())) {
+    if (this.demoMode) {
       this.telemetry.bump('mcp_call');
       if (write) {
         this.pushAudit({
@@ -284,6 +300,12 @@ export class CrdbPanelSession {
         outcome: 'ok',
       });
       return JSON.stringify(rows, null, 2);
+    }
+
+    if (!(await this.tryConnectMcp())) {
+      throw new Error(
+        'CockroachDB MCP is not configured. Run WalkCroach: Configure CockroachDB.',
+      );
     }
 
     const out = await this.mcp!.callTool(tool, {
@@ -374,6 +396,14 @@ export class CrdbPanelSession {
       detail: `${hits.length} hits`,
       outcome: 'ok',
     });
+  }
+
+  async isConfigured(): Promise<boolean> {
+    if (this.demoMode) {
+      return true;
+    }
+    const cfg = await this.deps.getMcpConfig?.();
+    return Boolean(cfg?.clusterId && cfg?.apiKey);
   }
 
   private async tryConnectMcp(): Promise<boolean> {
